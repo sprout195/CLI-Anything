@@ -262,12 +262,12 @@ def _handle_repl_command(skin: Any, cmd: str) -> None:
                             for d in items])
         elif sub == "tree" and len(parts) >= 3:
             tree = client.list_doc_tree(parts[2])
-            items = tree.get("tree", []) if isinstance(tree, dict) else tree
+            items = tree.get("files", []) if isinstance(tree, dict) else tree
             if json_mode:
                 click.echo(json.dumps(items, ensure_ascii=False))
             else:
-                skin.table(["ID", "Title", "Path"],
-                           [[t.get("id", ""), t.get("title", ""), t.get("path", "")]
+                skin.table(["ID", "Name", "Path"],
+                           [[t.get("id", ""), t.get("name", ""), t.get("path", "")]
                             for t in items])
         elif sub == "get" and len(parts) >= 3:
             hpath = client.get_hpath_by_id(parts[2])
@@ -486,13 +486,13 @@ def doc_list(ctx: SiYuanContext, notebook_id: str, path: str):
 def doc_tree(ctx: SiYuanContext, notebook_id: str, path: str, depth: int):
     """List document tree."""
     tree = ctx.client.list_doc_tree(notebook_id, path=path, max_depth=depth)
-    items = tree.get("tree", []) if isinstance(tree, dict) else tree
+    items = tree.get("files", []) if isinstance(tree, dict) else tree
     if ctx.json_output:
         click.echo(json.dumps(items, ensure_ascii=False))
     else:
         for t in items:
             indent = "  " * t.get("depth", 0)
-            click.echo(f"{indent}{t.get('title', '')}  ({t.get('id', '')})")
+            click.echo(f"{indent}{t.get('name', '')}  ({t.get('id', '')})")
 
 
 @doc.command("get")

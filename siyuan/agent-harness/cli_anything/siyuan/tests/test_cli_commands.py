@@ -141,12 +141,12 @@ class TestDocListCommand:
 
 
 class TestDocTreeCommand:
-    def test_doc_tree_returns_tree(self, runner, mock_ctx):
-        """doc tree handles API returning dict with 'tree' key."""
+    def test_doc_tree_returns_files(self, runner, mock_ctx):
+        """doc tree handles API returning dict with 'files' key."""
         mock_ctx.client.list_doc_tree.return_value = {
-            "tree": [
-                {"id": "doc1", "title": "根文档", "depth": 0},
-                {"id": "doc2", "title": "子文档", "depth": 1},
+            "files": [
+                {"id": "doc1", "name": "根文档", "depth": 0},
+                {"id": "doc2", "name": "子文档", "depth": 1},
             ],
         }
         with patch("cli_anything.siyuan.siyuan_cli.SiYuanContext", return_value=mock_ctx):
@@ -156,10 +156,10 @@ class TestDocTreeCommand:
             assert "子文档" in result.output
 
     def test_doc_tree_json(self, runner, mock_ctx):
-        """--json doc tree returns raw tree array."""
+        """--json doc tree returns raw files array."""
         mock_ctx.json_output = True
         mock_ctx.client.list_doc_tree.return_value = {
-            "tree": [{"id": "doc1", "title": "Root"}],
+            "files": [{"id": "doc1", "name": "Root"}],
         }
         with patch("cli_anything.siyuan.siyuan_cli.SiYuanContext", return_value=mock_ctx):
             result = runner.invoke(cli, ["--json", "doc", "tree", "nb1"])
