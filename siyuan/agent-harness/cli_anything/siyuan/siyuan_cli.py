@@ -534,16 +534,18 @@ def block():
 
 
 @block.command("insert")
-@click.argument("data")
+@click.argument("data", required=False)
 @click.option("--previous", default="", help="Previous block ID")
 @click.option("--parent", default="", help="Parent block ID")
 @click.option("--next", "next_", default="", help="Next block ID")
 @click.option("--data-type", default="markdown", help="Data type (markdown/dom)")
 @click.pass_obj
-def block_insert(ctx: SiYuanContext, data: str, previous: str, parent: str, next_: str, data_type: str):
-    """Insert a block."""
+def block_insert(ctx: SiYuanContext, data: str | None, previous: str, parent: str, next_: str, data_type: str):
+    """Insert a block. Data reads from stdin when '-' or omitted."""
     if not parent and not previous and not next_:
         raise click.UsageError("An anchor is required: --parent, --previous, or --next")
+    if not data or data == "-":
+        data = click.get_text_stream("stdin").read()
     result = ctx.client.insert_block(data_type, data, parent_id=parent, previous_id=previous, next_id=next_)
     if ctx.json_output:
         click.echo(json.dumps(result, ensure_ascii=False))
@@ -553,11 +555,13 @@ def block_insert(ctx: SiYuanContext, data: str, previous: str, parent: str, next
 
 @block.command("update")
 @click.argument("block_id")
-@click.argument("data")
+@click.argument("data", required=False)
 @click.option("--data-type", default="markdown", help="Data type")
 @click.pass_obj
-def block_update(ctx: SiYuanContext, block_id: str, data: str, data_type: str):
-    """Update a block's content."""
+def block_update(ctx: SiYuanContext, block_id: str, data: str | None, data_type: str):
+    """Update a block's content. Data reads from stdin when '-' or omitted."""
+    if not data or data == "-":
+        data = click.get_text_stream("stdin").read()
     ctx.client.update_block(data_type, data, block_id)
     click.echo(f"Updated block: {block_id}")
 
