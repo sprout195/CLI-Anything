@@ -232,6 +232,56 @@ class TestExtractCliMetadata:
         assert [cmd.name for cmd in groups["Configs"].commands] == ["show"]
         assert [cmd.name for cmd in groups["Alerts Configs"].commands] == ["enable"]
 
+    def test_preserves_top_level_group_names_with_decorated_root(self, tmp_path):
+        software = "decorated"
+        cli_pkg = tmp_path / "cli_anything" / software
+        cli_pkg.mkdir(parents=True)
+        (cli_pkg / "__init__.py").write_text("")
+        (cli_pkg / f"{software}_cli.py").write_text(
+            textwrap.dedent("""\
+            import click
+
+            @click.group()
+            @click.pass_context
+            def cli(ctx):
+                pass
+
+            @cli.group("devices")
+            def devices_group():
+                \"\"\"Device commands.\"\"\"
+                pass
+
+            @devices_group.command("list")
+            def list_devices():
+                \"\"\"List devices.\"\"\"
+                pass
+
+            @cli.group("alerts")
+            def alerts():
+                \"\"\"Alert commands.\"\"\"
+                pass
+
+            @alerts.group("configs")
+            def alerts_configs():
+                \"\"\"Alert config commands.\"\"\"
+                pass
+
+            @alerts_configs.command("enable")
+            def enable_alert_config():
+                \"\"\"Enable alert config.\"\"\"
+                pass
+            """)
+        )
+
+        metadata = extract_cli_metadata(str(tmp_path))
+        groups = {group.name: group for group in metadata.command_groups}
+
+        assert "Devices" in groups
+        assert "Cli Devices" not in groups
+        assert "Alerts Configs" in groups
+        assert [cmd.name for cmd in groups["Devices"].commands] == ["list"]
+        assert [cmd.name for cmd in groups["Alerts Configs"].commands] == ["enable"]
+
     def test_generates_examples(self, harness_dir):
         metadata = extract_cli_metadata(str(harness_dir))
         assert len(metadata.examples) > 0

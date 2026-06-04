@@ -219,12 +219,14 @@ def extract_commands_from_cli(cli_path: Path) -> list[CommandGroup]:
     # - Docstrings on the same line or following line after function definition
     # - Various Click decorator patterns like @click.option(), @click.argument()
     # Uses re.DOTALL to match across newlines between decorator and def
+    optional_decorator_pattern = r'(?:\s*@[\w.]+(?:\([^)]*\))?)*'
+
     group_pattern = (
-        r'@(\w+)\.group\(([^)]*)\)'                         # @xxx.group(...)
-        r'(?:\s*@[\w.]+\([^)]*\))*'                         # optional additional decorators
-        r'\s*def\s+(\w+)\([^)]*\)'                          # def xxx(...):
-        r':\s*'                                             # colon with optional whitespace
-        r'(?:"""([\s\S]*?)"""|\'\'\'([\s\S]*?)\'\'\')?'      # optional docstring (""" or ''')
+        r'@(\w+)\.group\(([^)]*)\)'  # @xxx.group(...)
+        + optional_decorator_pattern  # optional additional decorators
+        + r'\s*def\s+(\w+)\([^)]*\)'  # def xxx(...):
+        + r':\s*'  # colon with optional whitespace
+        + r'(?:"""([\s\S]*?)"""|\'\'\'([\s\S]*?)\'\'\')?'  # optional docstring (""" or ''')
     )
 
     group_lookup = {}
@@ -271,11 +273,11 @@ def extract_commands_from_cli(cli_path: Path) -> list[CommandGroup]:
     # - Docstrings on the same line or following line after function definition
     # - Various Click decorator patterns like @click.option(), @click.argument()
     command_pattern = (
-        r'@(\w+)\.command\(([^)]*)\)'                       # @xxx.command(...)
-        r'(?:\s*@[\w.]+\([^)]*\))*'                          # optional additional decorators
-        r'\s*def\s+(\w+)\([^)]*\)'                           # def xxx(...):
-        r':\s*'                                              # colon with optional whitespace
-        r'(?:"""([\s\S]*?)"""|\'\'\'([\s\S]*?)\'\'\')?'       # optional docstring (""" or ''')
+        r'@(\w+)\.command\(([^)]*)\)'  # @xxx.command(...)
+        + optional_decorator_pattern  # optional additional decorators
+        + r'\s*def\s+(\w+)\([^)]*\)'  # def xxx(...):
+        + r':\s*'  # colon with optional whitespace
+        + r'(?:"""([\s\S]*?)"""|\'\'\'([\s\S]*?)\'\'\')?'  # optional docstring (""" or ''')
     )
 
     for match in re.finditer(command_pattern, content):
