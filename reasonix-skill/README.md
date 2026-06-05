@@ -1,0 +1,120 @@
+# CLI-Anything for Reasonix
+
+An adapter that brings the [CLI-Anything](https://github.com/HKUDS/CLI-Anything) harness methodology to the [Reasonix](https://reasonix.ai) coding agent.
+
+CLI-Anything (42.1k+ stars) is a methodology for making **any GUI software agent-native** by generating stateful CLI harnesses with REPL mode, JSON output, undo/redo, and comprehensive tests. This adapter lets Reasonix act as the builder agent.
+
+## Installation
+
+### Option 1: One-liner via Reasonix Skill API (Recommended)
+
+If you have a running Reasonix session, just ask:
+
+> "Install the cli-anything skill"
+
+Or programmatically, Reasonix's `install_skill` will place the skill at `~/.reasonix/skills/cli-anything.md`.
+
+### Option 2: Shell Install Script
+
+**macOS / Linux:**
+
+```bash
+git clone https://github.com/HKUDS/CLI-Anything.git
+cd CLI-Anything/reasonix-skill
+./scripts/install.sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+git clone https://github.com/HKUDS/CLI-Anything.git
+cd CLI-Anything\reasonix-skill
+.\scripts\install.ps1
+```
+
+Both scripts copy the skill to `$REASONIX_HOME/skills/cli-anything` (defaults to `~/.reasonix/skills/cli-anything`).
+
+## Usage
+
+After installation, invoke the skill in any Reasonix session:
+
+```
+/cli-anything https://github.com/GNOME/gimp
+```
+
+Or via the `run_skill` API:
+
+```
+run_skill({ name: "cli-anything", arguments: "/path/to/software" })
+```
+
+### What It Does
+
+The skill spawns an isolated Reasonix sub-agent that follows the CLI-Anything 7-phase methodology:
+
+1. **Codebase Analysis** — Surveys the target software's architecture, data model, and API surface
+2. **CLI Architecture Design** — Designs command groups, state model, and output formats
+3. **Implementation** — Generates a Click-based Python CLI with REPL, JSON output, and session state
+4. **Test Planning** — Creates TEST.md with comprehensive test plan
+5. **Test Implementation** — Writes unit tests and E2E tests with real backend invocation
+6. **Test Documentation** — Runs all tests and documents results
+7. **PyPI Packaging** — Creates setup.py and verifies `pip install -e .`
+
+### Example
+
+```bash
+# Build a CLI for GIMP from local source
+/cli-anything /home/user/gimp
+
+# Build from a GitHub repo
+/cli-anything https://github.com/blender/blender
+
+# Refine an existing harness
+/cli-anything:refine /home/user/gimp "batch processing and Script-Fu filters"
+```
+
+## Reasonix Tool Mapping
+
+| CLI-Anything Need | Reasonix Tool |
+|-------------------|---------------|
+| Shell execution | `bash` |
+| File generation | `write_file` |
+| Code editing | `edit_file` / `multi_edit` |
+| Source reading | `read_file` |
+| Codebase search | `grep` / `glob` / `ls` |
+| Architecture analysis | `mcp__codegraph__*` |
+| Parallel subtasks | `task` |
+| Documentation fetch | `web_fetch` |
+
+## File Structure
+
+```
+reasonix-skill/
+├── SKILL.md                      # Main skill document (methodology + tool bindings)
+├── README.md                     # This file
+├── REASONIX_SKILL_INSTALL.md     # install_skill API usage reference
+├── agents/
+│   └── reasonix.yaml             # Agent interface metadata
+└── scripts/
+    ├── install.sh                # macOS/Linux installer
+    └── install.ps1               # Windows installer
+```
+
+## How It Compares to Other Agent Adapters
+
+| Feature | Claude Code | Codex | Hermes | **Reasonix** |
+|---------|------------|-------|--------|-------------|
+| Skill format | `.claude-plugin/` | `SKILL.md` + YAML | `SKILL.md` + YAML | `SKILL.md` + YAML |
+| Shell | `bash` | `terminal` | `terminal` | `bash` |
+| File ops | native | `execute_code` | `execute_code` / `write_file` | `write_file` / `edit_file` / `multi_edit` |
+| Code analysis | file reads | file reads | file reads | `mcp__codegraph__*` (symbol graph) |
+| Parallelism | — | — | `delegate_task` | `task` (sub-agents) |
+| Install method | `/plugin install` | `install.sh` → `$CODEX_HOME/skills/` | `install.sh` → `$HERMES_HOME/skills/` | `install_skill` API or `install.sh` → `~/.reasonix/skills/` |
+
+## Contributing
+
+This adapter follows the same contribution pattern as the Codex and Hermes adapters. See [CONTRIBUTING.md](../CONTRIBUTING.md) in the CLI-Anything repository.
+
+## License
+
+Apache License 2.0 — same as CLI-Anything.
